@@ -1,4 +1,5 @@
 Python version we used: 3.6
+(Might have to install pip also)
 
 libsndfile
 
