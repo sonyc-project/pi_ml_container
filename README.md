@@ -6,6 +6,9 @@ It is recommended to use nohup to build the images on your test Raspberry Pi so 
 
 `nohup docker build --no-cache=true -t <IMAGE_NAME>:<IMAGE_VERSION> . &`
 
+There are currently two versions:
+* `sonyc_ml/` - only includes tflite runtime components (fully untested) - 985MB
+* `sonyc_ml_full_tf/` - includes tflite runtime and full tensorflow - 1.3GB
 
 ## Docker Hub
 TBD when latest build is complete
