@@ -11,12 +11,11 @@ There are currently two versions:
 * `sonyc_ml_full_tf/` - includes tflite runtime and full tensorflow - 1.3GB
 
 ## Docker Hub
-To pull the docker image from Docker Hub to your test RPi use the following command: `docker pull cmydlarz/sonyc_ml:<IMAGE_VERSION>`
+To pull the docker image from Docker Hub to your test RPi use the following command:
+`docker pull cmydlarz/sonyc_ml:<IMAGE_VERSION>`
 
 To setup your test RPi to push updated images you need to add your credentials locally and login:
-```
-docker login --username=yourhubusername --email=youremail@company.com
-```
+`docker login --username=yourhubusername --email=youremail@company.com`
 
 Make sure you have been added as a collaborator to the `cmydlarz/sonyc_ml` repository: https://cloud.docker.com/repository/docker/cmydlarz/sonyc_ml
 
@@ -30,4 +29,5 @@ For docker push commands to complete from RPi, you need to set `max-concurrent-u
 ```
 `systemctl restart docker`
 
-Then to push an updated image: `docker push cmydlarz/sonyc_ml:<IMAGE_VERSION>`
+Then to push an updated image:
+`docker push cmydlarz/sonyc_ml:<IMAGE_VERSION>`
