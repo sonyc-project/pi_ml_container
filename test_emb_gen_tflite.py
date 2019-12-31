@@ -11,6 +11,7 @@ import resampy
 import tensorflow as tf
 import soundfile as sf
 import librosa
+import time
 
 
 def initialize_uninitialized_variables(sess):
@@ -156,6 +157,9 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
     print(interpreter.get_output_details()[0])
     
     predictions = np.zeros((batch_size, embedding_length), dtype=np.float32)
+
+    st = time.time()
+
     for idx in range(len(X)):
         #predictions per batch
         #print(np.array(X[idx]).shape)
@@ -165,7 +169,7 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
         #print('Interpreter Invoked!')
         output = interpreter.get_tensor(output_index)
         predictions[idx] = np.reshape(output, (output.shape[0], output.shape[-1]))
-
+    print('Processing time: %0.3f' % (time.time() - st))
     return predictions
 
 def process_file(filepath, output_dir=None, model=None, hop_size=0.1,\
