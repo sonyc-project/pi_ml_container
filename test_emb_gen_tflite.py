@@ -1,3 +1,4 @@
+
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -199,17 +200,17 @@ if __name__=='__main__':
     TFLITE_MODELS_DIR = os.path.join(TEST_DIR, 'tflite_models')
     OUTPUT_DIR = os.path.join(TEST_DIR, 'output')
     
-    model_path = os.path.join(TFLITE_MODELS_DIR, 'quantized_model_size.tflite')
+    model_path = os.path.join(TFLITE_MODELS_DIR, 'quantized_model_8000_default.tflite')
     CHIRP_1S_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_1s.wav')
     CHIRP_44K_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_44k.wav')
 
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    TARGET_SR = 48000
-    n_mels = 256
+    TARGET_SR = 8000
+    n_mels = 64
     hop_size = 0.1 
-    mel_hop_len = 242
+    mel_hop_len = 160
     n_fft = 2048 
     fmax=None
     
