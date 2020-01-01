@@ -44,7 +44,7 @@ RUN pip install --no-cache-dir --compile numpy \
 
 RUN apt-get remove -y --auto-remove \
     make \
-    llvm-dev \
+    # llvm-dev \
     && apt-get remove -y --auto-remove python3-dev \
     && apt-get autoremove && apt-get clean
 
