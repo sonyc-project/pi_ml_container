@@ -9,11 +9,12 @@ import json
 import glob
 import numpy as np
 import resampy
-import tensorflow as tf
+#import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 import soundfile as sf
 import librosa
 import time
-
+import sys
 
 def initialize_uninitialized_variables(sess):
     if hasattr(tf, 'global_variables'):
@@ -34,7 +35,7 @@ def initialize_uninitialized_variables(sess):
             sess.run(tf.initialize_variables(uninitialized_variables)) 
             
 def get_l3model(model_path, saved_model_type='tflite'):
-    l3embedding_model = tf.lite.Interpreter(model_path=model_path)  
+    l3embedding_model = tflite.Interpreter(model_path=model_path)  
     return l3embedding_model
 
 def get_output_path(filepath, suffix, output_dir=None):
@@ -199,18 +200,20 @@ if __name__=='__main__':
     TEST_AUDIO_DIR = os.path.join(TEST_DIR, 'data')
     TFLITE_MODELS_DIR = os.path.join(TEST_DIR, 'tflite_models')
     OUTPUT_DIR = os.path.join(TEST_DIR, 'output')
-    
-    model_path = os.path.join(TFLITE_MODELS_DIR, 'quantized_model_8000_default.tflite')
-    CHIRP_1S_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_1s.wav')
+    model_name = sys.argv[1]
+    model_path = os.path.join(TFLITE_MODELS_DIR, model_name)
+    CHIRP_1S_PATH = os.path.join(TEST_AUDIO_DIR, sys.argv[2])
     CHIRP_44K_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_44k.wav')
 
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    TARGET_SR = 8000
-    n_mels = 64
+    TARGET_SR = int(sys.argv[3])
+    #n_mels = 64
+    n_mels = int(sys.argv[4])
     hop_size = 0.1 
-    mel_hop_len = 160
+    #mel_hop_len = 160
+    mel_hop_len = int(sys.argv[5])
     n_fft = 2048 
     fmax=None
     
