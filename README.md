@@ -35,20 +35,15 @@ Then to push an updated image:
 ## How to run tests
 SSH into the test Pi 2B and head to `/home/pi/mnt/pi_ml_container`. The username and password are the standard default Pi ones.
 
-Run an interactive shell into the full tf image with a mounted volume containing the repository (this means you can nano the files on the host machine as the container doesnt have any editing tools):
+You can run the scripts using the following command (you must use full paths that exist inside the container):
 
-`docker run -it -v /home/pi/mnt:/mnt sonyc_ml_full_tf:0.1 /bin/bash`
-`cd mnt/pi_ml_container`
-
-Now you can run the scripts passing args to change the model and audio params:
-
-`python test_emb_gen_tflite.py <model file name> <audio file name in data folder> <target fs> <num mel bands> <mel hop len>`
+`docker run -it -v /home/pi/mnt:/mnt sonyc_ml_full:0.1 python /mnt/pi_ml_container/test_emb_gen_tflite.py <model file name> <audio file name in data folder> <target fs> <num mel bands> <mel hop len>`
 
 For example:
 
-`python test_emb_gen_tflite.py quantized_model_8000_default.tflite dog_1.wav 8000 64 160`
+`docker run -it -v /home/pi/mnt:/mnt sonyc_ml_full:0.1 python /mnt/pi_ml_container/test_emb_gen_tflite.py /mnt/pi_ml_container/tflite_models/quantized_model_8000_default.tflite /mnt/pi_ml_container/data/dog_1.wav 8000 64 160`
+
 ```
-root@b083d8ea1ba0:/mnt/pi_ml_container# python test_emb_gen_tflite.py quantized_model_8000_default.tflite dog_1.wav 8000 64 160
 INFO: Initialized TensorFlow Lite runtime.
 == Input details ==
 {'name': 'input_1', 'index': 33, 'shape': array([ 1, 64, 51,  1]), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0)}
@@ -56,5 +51,5 @@ type: <class 'numpy.float32'>
 
 == Output details ==
 {'name': 'max_pooling2d_4/MaxPool', 'index': 34, 'shape': array([  1,   1,   1, 256]), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0)}
-Processing time: 0.965
+Processing time: 0.143
 ```
