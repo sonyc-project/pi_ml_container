@@ -152,15 +152,14 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
     #interpreter.resize_tensor_input(input_index, ((batch_size, ) + tuple(input_shape)))
     #interpreter.resize_tensor_input(output_index, ((batch_size, ) + tuple(output_shape)))
      
-    print("== Input details ==")
-    print(interpreter.get_input_details()[0])
-    print("type:", input_details[0]['dtype'])
-    print("\n== Output details ==")
-    print(interpreter.get_output_details()[0])
+    # print("== Input details ==")
+    # print(interpreter.get_input_details()[0])
+    # print("type:", input_details[0]['dtype'])
+    # print("\n== Output details ==")
+    # print(interpreter.get_output_details()[0])
     
     predictions = np.zeros((batch_size, embedding_length), dtype=np.float32)
 
-    st = time.time()
 
     for idx in range(len(X)):
         #predictions per batch
@@ -171,7 +170,6 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
         #print('Interpreter Invoked!')
         output = interpreter.get_tensor(output_index)
         predictions[idx] = np.reshape(output, (output.shape[0], output.shape[-1]))
-    print('Processing time: %0.3f' % (time.time() - st))
     return predictions
 
 def process_file(filepath, output_dir=None, model=None, hop_size=0.1,\
@@ -219,6 +217,8 @@ if __name__=='__main__':
     
     saved_model_type = 'tflite' 
     l3embedding_model = get_l3model(model_path, saved_model_type=saved_model_type)
-
-    process_file(CHIRP_1S_PATH, output_dir=OUTPUT_DIR, model=l3embedding_model, hop_size=hop_size,\
-                 n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
+    for x in range(10):
+        st = time.time()
+        process_file(CHIRP_1S_PATH, output_dir=OUTPUT_DIR, model=l3embedding_model, hop_size=hop_size,\
+                     n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
+        print('Inference run %i: %0.3f' % (x + 1, time.time() - st))
