@@ -1,3 +1,4 @@
+
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -8,10 +9,12 @@ import json
 import glob
 import numpy as np
 import resampy
-import tensorflow as tf
+#import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 import soundfile as sf
 import librosa
-
+import time
+import sys
 
 def initialize_uninitialized_variables(sess):
     if hasattr(tf, 'global_variables'):
@@ -32,7 +35,7 @@ def initialize_uninitialized_variables(sess):
             sess.run(tf.initialize_variables(uninitialized_variables)) 
             
 def get_l3model(model_path, saved_model_type='tflite'):
-    l3embedding_model = tf.lite.Interpreter(model_path=model_path)  
+    l3embedding_model = tflite.Interpreter(model_path=model_path)  
     return l3embedding_model
 
 def get_output_path(filepath, suffix, output_dir=None):
@@ -149,13 +152,15 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
     #interpreter.resize_tensor_input(input_index, ((batch_size, ) + tuple(input_shape)))
     #interpreter.resize_tensor_input(output_index, ((batch_size, ) + tuple(output_shape)))
      
-    print("== Input details ==")
-    print(interpreter.get_input_details()[0])
-    print("type:", input_details[0]['dtype'])
-    print("\n== Output details ==")
-    print(interpreter.get_output_details()[0])
+    # print("== Input details ==")
+    # print(interpreter.get_input_details()[0])
+    # print("type:", input_details[0]['dtype'])
+    # print("\n== Output details ==")
+    # print(interpreter.get_output_details()[0])
     
     predictions = np.zeros((batch_size, embedding_length), dtype=np.float32)
+
+
     for idx in range(len(X)):
         #predictions per batch
         #print(np.array(X[idx]).shape)
@@ -165,7 +170,6 @@ def get_embedding(audio, sr, model=None, hop_size=0.1, center=True,\
         #print('Interpreter Invoked!')
         output = interpreter.get_tensor(output_index)
         predictions[idx] = np.reshape(output, (output.shape[0], output.shape[-1]))
-
     return predictions
 
 def process_file(filepath, output_dir=None, model=None, hop_size=0.1,\
@@ -194,23 +198,27 @@ if __name__=='__main__':
     TEST_AUDIO_DIR = os.path.join(TEST_DIR, 'data')
     TFLITE_MODELS_DIR = os.path.join(TEST_DIR, 'tflite_models')
     OUTPUT_DIR = os.path.join(TEST_DIR, 'output')
-    
-    model_path = os.path.join(TFLITE_MODELS_DIR, 'quantized_model_size.tflite')
-    CHIRP_1S_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_1s.wav')
+    model_name = sys.argv[1]
+    model_path = os.path.join(TFLITE_MODELS_DIR, model_name)
+    CHIRP_1S_PATH = os.path.join(TEST_AUDIO_DIR, sys.argv[2])
     CHIRP_44K_PATH = os.path.join(TEST_AUDIO_DIR, 'chirp_44k.wav')
 
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    TARGET_SR = 48000
-    n_mels = 256
+    TARGET_SR = int(sys.argv[3])
+    #n_mels = 64
+    n_mels = int(sys.argv[4])
     hop_size = 0.1 
-    mel_hop_len = 242
+    #mel_hop_len = 160
+    mel_hop_len = int(sys.argv[5])
     n_fft = 2048 
     fmax=None
     
     saved_model_type = 'tflite' 
     l3embedding_model = get_l3model(model_path, saved_model_type=saved_model_type)
-
-    process_file(CHIRP_1S_PATH, output_dir=OUTPUT_DIR, model=l3embedding_model, hop_size=hop_size,\
-                 n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
+    for x in range(10):
+        st = time.time()
+        process_file(CHIRP_1S_PATH, output_dir=OUTPUT_DIR, model=l3embedding_model, hop_size=hop_size,\
+                     n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
+        print('Inference run %i: %0.3f' % (x + 1, time.time() - st))
