@@ -17,7 +17,7 @@ import resampy
 import tensorflow as tf
 import soundfile as sf
 import librosa
-
+import time
 
 # In[8]:
 
@@ -149,12 +149,14 @@ def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=Tru
     print(interpreter.get_output_details()[0])
    
     #Predict for one audio file i.e. for one batch
-    x = np.array(X[:batch_size])[:, :, :, np.newaxis].astype(np.float32)
-    interpreter.set_tensor(input_index, x)
-    interpreter.invoke()
-    output = interpreter.get_tensor(output_index)
-    predictions.append(output)
-
+    for cnt in range(10):
+        st = time.time()
+        x = np.array(X[:batch_size])[:, :, :, np.newaxis].astype(np.float32)
+        interpreter.set_tensor(input_index, x)
+        interpreter.invoke()
+        output = interpreter.get_tensor(output_index)
+        predictions.append(output)
+        print('Inference run %i: %0.3f' % (cnt + 1, time.time() - st))
 #     predictions per batch in the absence of reshape   
 #     for idx, batch_x in enumerate(batch_size):
 #         x = np.array(X[idx])[np.newaxis, :, :, np.newaxis].astype(np.float32)
@@ -198,7 +200,8 @@ def process_file(filepath, output_dir=None, model_path=None, hop_size=0.1,      
 
 
 if __name__=='__main__':
-    TEST_DIR = os.path.dirname(os.path.realpath('__file__')) #os.path.dirname(__file__)
+    TEST_DIR = os.path.dirname(os.path.abspath('__file__')) #os.path.dirname(__file__)
+    TEST_DIR ='mnt/pi_ml_container'
     TEST_AUDIO_DIR = os.path.join(TEST_DIR, 'data/8k')
     TFLITE_MODELS_DIR = os.path.join(TEST_DIR, 'tflite_models')
     OUTPUT_DIR = os.path.join(TEST_DIR, 'output/sonyc_labels')
@@ -217,7 +220,7 @@ if __name__=='__main__':
     n_fft = 1024
     fmax = None
     
-    process_file(SAMP_8K_PATH_1, output_dir=OUTPUT_DIR, model_path=MODEL_PATH,                 hop_size=hop_size, n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len,                 fmax=fmax)
+    process_file(SAMP_8K_PATH_1, output_dir=OUTPUT_DIR, model_path=MODEL_PATH, hop_size=hop_size, n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
     
     # Labels are genrated for each frame. You can read the labels 
     labels = np.load(os.path.join(OUTPUT_DIR, '08_003165.npz'))
