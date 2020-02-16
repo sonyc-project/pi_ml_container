@@ -17,7 +17,7 @@ import resampy
 import tensorflow as tf
 import soundfile as sf
 import librosa
-
+import time
 
 # In[8]:
 
@@ -63,7 +63,7 @@ def _pad_audio(audio, frame_len, hop_len):
     if audio_len < frame_len:
         pad_length = frame_len - audio_len
     else:
-        pad_length = int(np.ceil((audio_len - frame_len)/float(hop_len))) * hop_len                      - (audio_len - frame_len)
+        pad_length = int(np.ceil((audio_len - frame_len)/float(hop_len))) * hop_len - (audio_len - frame_len)
 
     if pad_length > 0:
         audio = np.pad(audio, (0, pad_length), mode='constant', constant_values=0)
@@ -85,7 +85,7 @@ def _amplitude_to_db(S, amin=1e-10, dynamic_range=80.0):
 # In[24]:
 
 
-def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=True,                            n_fft=None, n_mels=None, mel_hop_len=None, fmax=None):
+def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=True, n_fft=None, n_mels=None, mel_hop_len=None, fmax=None):
     """
     Computes and returns L3 embedding for given audio data
     """
@@ -118,7 +118,7 @@ def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=Tru
     frames = librosa.util.utils.frame(audio, frame_length=frame_len, hop_length=hop_len).T
     X = []
     for frame in frames:
-        S = np.abs(librosa.core.stft(frame, n_fft=n_fft, hop_length=mel_hop_len,                                     window='hann', center=True, pad_mode='constant'))
+        S = np.abs(librosa.core.stft(frame, n_fft=n_fft, hop_length=mel_hop_len, window='hann', center=True, pad_mode='constant'))
         S = librosa.feature.melspectrogram(sr=sr, S=S, n_mels=n_mels, fmax=fmax,
                                            power=1.0, htk=True)
         S = _amplitude_to_db(np.array(S))
@@ -149,12 +149,14 @@ def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=Tru
     print(interpreter.get_output_details()[0])
    
     #Predict for one audio file i.e. for one batch
-    x = np.array(X[:batch_size])[:, :, :, np.newaxis].astype(np.float32)
-    interpreter.set_tensor(input_index, x)
-    interpreter.invoke()
-    output = interpreter.get_tensor(output_index)
-    predictions.append(output)
-
+    for cnt in range(10):
+        st = time.time()
+        x = np.array(X[:batch_size])[:, :, :, np.newaxis].astype(np.float32)
+        interpreter.set_tensor(input_index, x)
+        interpreter.invoke()
+        output = interpreter.get_tensor(output_index)
+        predictions.append(output)
+        print('Inference run %i: %0.3f' % (cnt + 1, time.time() - st))
 #     predictions per batch in the absence of reshape   
 #     for idx, batch_x in enumerate(batch_size):
 #         x = np.array(X[idx])[np.newaxis, :, :, np.newaxis].astype(np.float32)
@@ -169,7 +171,8 @@ def get_softmax_from_tflite(audio, sr, model_path=None, hop_size=0.1, center=Tru
 # In[14]:
 
 
-def process_file(filepath, output_dir=None, model_path=None, hop_size=0.1,                 n_fft=None, n_mels=None, mel_hop_len=None, fmax=None):
+def process_file(filepath, output_dir=None, model_path=None, hop_size=0.1, \
+                 n_fft=None, n_mels=None, mel_hop_len=None, fmax=None):
     """
     Computes and saves L3 embedding for given audio file
     """
@@ -183,7 +186,8 @@ def process_file(filepath, output_dir=None, model_path=None, hop_size=0.1,      
 
     output_path = get_output_path(filepath, ".npz", output_dir=output_dir)
 
-    output = get_softmax_from_tflite(audio, sr, model_path=model_path, hop_size=hop_size,                                     n_fft=n_fft, n_mels=n_mels, mel_hop_len=mel_hop_len, fmax=fmax)
+    output = get_softmax_from_tflite(audio, sr, model_path=model_path, hop_size=hop_size,\
+                                     n_fft=n_fft, n_mels=n_mels, mel_hop_len=mel_hop_len, fmax=fmax)
 
     #coarse classes of sonyc = 8
     pred = np.array(output).reshape(-1, 8)
@@ -198,6 +202,8 @@ def process_file(filepath, output_dir=None, model_path=None, hop_size=0.1,      
 
 
 if __name__=='__main__':
+    TEST_DIR ='mnt/pi_ml_container'
+    TEST_AUDIO_DIR = os.path.join(TEST_DIR, 'data/8k')
     TFLITE_MODELS_DIR = os.path.join(TEST_DIR, 'tflite_models')
     MODEL_PATH = os.path.join(TFLITE_MODELS_DIR, 'full_quantized_default_float32.tflite')
     if sample_test:
@@ -221,8 +227,7 @@ if __name__=='__main__':
     n_fft = 1024
     fmax = None
     
-    process_file(SAMP_8K_PATH_1, output_dir=OUTPUT_DIR, model_path=MODEL_PATH,\
-                 hop_size=hop_size, n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
+    process_file(SAMP_8K_PATH_1, output_dir=OUTPUT_DIR, model_path=MODEL_PATH, hop_size=hop_size, n_mels=n_mels, n_fft=n_fft, mel_hop_len=mel_hop_len, fmax=fmax)
     
     # Labels are genrated for each frame. You can read the labels 
     labels = np.load(os.path.join(OUTPUT_DIR, '08_003165.npz'))
