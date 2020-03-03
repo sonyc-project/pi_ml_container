@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir --compile numpy \
     && HDF5_DIR=/usr/lib/arm-linux-gnueabihf/hdf5/serial pip install --no-cache-dir --compile h5py \
     && pip install --no-cache-dir --compile kapre \
     && pip install --no-cache-dir --compile keras \
-    && pip install --no-cache-dir --compile https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.14.0-buster/tensorflow-1.14.0-cp37-none-linux_armv7l.whl \
+    && pip install --no-cache-dir --compile https://github.com/lhelontra/tensorflow-on-arm/releases/download/v2.0.0/tensorflow-2.0.0-cp37-none-linux_armv7l.whl \
     && pip install --no-cache-dir --compile https://dl.google.com/coral/python/tflite_runtime-1.14.0-cp37-cp37m-linux_armv7l.whl \
     && rm -rf /root/.cache \
     && rm -rf /tmp/pip_build_root/
